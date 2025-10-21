@@ -1,0 +1,39 @@
+FROM rocker/rstudio:latest
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    unixodbc \
+    unixodbc-dev \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy the local DB2 driver file
+COPY v11.5.8_linuxx64_odbc_cli.tar.gz /tmp/
+
+# Install IBM DB2 ODBC driver v11.5.8 with better error handling
+RUN cd /tmp && \
+    ls -lh v11.5.8_linuxx64_odbc_cli.tar.gz && \
+    tar -xzvf v11.5.8_linuxx64_odbc_cli.tar.gz && \
+    ls -la && \
+    if [ -d "clidriver" ]; then mv clidriver /opt/; elif [ -d "odbc_cli/clidriver" ]; then mv odbc_cli/clidriver /opt/; else echo "clidriver not found"; ls -R; exit 1; fi && \
+    rm -f v11.5.8_linuxx64_odbc_cli.tar.gz
+
+# Set DB2 environment variables
+ENV DB2_CLI_DRIVER_INSTALL_PATH=/opt/clidriver
+ENV LD_LIBRARY_PATH=/opt/clidriver/lib:$LD_LIBRARY_PATH
+
+# Configure ODBC
+RUN echo "[DB2]" > /etc/odbcinst.ini && \
+    echo "Description = DB2 ODBC Driver" >> /etc/odbcinst.ini && \
+    echo "Driver = /opt/clidriver/lib/libdb2o.so" >> /etc/odbcinst.ini && \
+    echo "FileUsage = 1" >> /etc/odbcinst.ini && \
+    echo "DontDLClose = 1" >> /etc/odbcinst.ini
+
+# Install R packages
+RUN R -e "install.packages(c('DBI', 'odbc', 'dplyr', 'dbplyr'), repos='http://cran.rstudio.com/')"
+
+# Create scripts directory
+RUN mkdir -p /home/rstudio/scripts && \
+    chown -R rstudio:rstudio /home/rstudio/scripts
+
+EXPOSE 8787
