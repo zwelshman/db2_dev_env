@@ -14,6 +14,27 @@ services:
     volumes:
       - db2-data:/database
       - ./init-scripts:/var/custom
+  rstudio:
+    build:
+      context: .
+      dockerfile: Dockerfile.rstudio
+    ports:
+      - "8787:8787"
+    environment:
+      - PASSWORD=${RSTUDIO_PASSWORD}
+      - ROOT=TRUE
+    volumes:
+      - ./r-scripts:/home/rstudio/scripts
+      - rstudio-home:/home/rstudio
+    depends_on:
+      - db
+    networks:
+      - db2-network
 
 volumes:
   db2-data:
+  rstudio-home:
+
+networks:
+  db2-network:
+    driver: bridge
