@@ -13,7 +13,11 @@ services:
       DB2COMM: TCPIP
     volumes:
       - db2-data:/database
-      - ./init-scripts:/var/custom
+      - ./init-scripts:/var/custom:z
+    
+    networks:
+      - db2-network
+
   rstudio:
     build:
       context: .

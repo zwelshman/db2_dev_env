@@ -10,7 +10,7 @@ con <- dbConnect(
   odbc::odbc(),
   Driver = "DB2",
   Database = "DEVDB",
-  Hostname = "127.0.0.1",  # This is the docker-compose service name
+  Hostname = "db",  # This is the docker-compose service name
   Port = 50000,
   UID = "db2inst1",
   PWD = "mypassword123",
