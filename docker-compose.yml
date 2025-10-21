@@ -13,24 +13,7 @@ services:
       DB2COMM: TCPIP
     volumes:
       - db2-data:/database
-      - ./init-scripts:/docker-entrypoint-initdb.d
-
-  db-init:
-    image: ibmcom/db2
-    depends_on:
-      - db
-    volumes:
-      - ./init-scripts:/scripts
-    entrypoint: /bin/bash
-    command: >
-      -c "
-      echo 'Waiting for DB2 to be ready...';
-      sleep 180;
-      echo 'Executing initialization script...';
-      docker exec db2_dev_env-db-1 su - db2inst1 -c 'db2 -tvf /docker-entrypoint-initdb.d/init-db.sql' || true;
-      echo 'Initialization complete';
-      "
-    restart: "no"
+      - ./init-scripts:/var/custom
 
 volumes:
   db2-data:
