@@ -1,5 +1,8 @@
--- Connect to the database (it should already exist from DBNAME env var)
-CONNECT TO ${DBNAME};
+-- Create the database
+CREATE DATABASE DEVELOPMENT_DB AUTOMATIC STORAGE YES USING CODESET UTF-8 TERRITORY US PAGESIZE 32768;
+
+-- Connect to the database
+CONNECT TO DEVELOPMENT_DB;
 
 -- Create a schema
 CREATE SCHEMA MYSCHEMA;
@@ -18,23 +21,12 @@ CREATE TABLE EMPLOYEES (
     DEPARTMENT VARCHAR(50)
 );
 
-CREATE TABLE DEPARTMENTS (
-    DEPT_ID INTEGER NOT NULL PRIMARY KEY,
-    DEPT_NAME VARCHAR(100) NOT NULL,
-    LOCATION VARCHAR(100)
-);
-
--- Insert sample data (optional)
+-- Insert sample data
 INSERT INTO EMPLOYEES VALUES 
 (1, 'John', 'Doe', 'john.doe@example.com', '2024-01-15', 75000.00, 'Engineering'),
 (2, 'Jane', 'Smith', 'jane.smith@example.com', '2024-02-20', 82000.00, 'Marketing');
 
-INSERT INTO DEPARTMENTS VALUES
-(1, 'Engineering', 'Building A'),
-(2, 'Marketing', 'Building B');
-
 -- Grant privileges
 GRANT ALL ON TABLE MYSCHEMA.EMPLOYEES TO PUBLIC;
-GRANT ALL ON TABLE MYSCHEMA.DEPARTMENTS TO PUBLIC;
 
 CONNECT RESET;
