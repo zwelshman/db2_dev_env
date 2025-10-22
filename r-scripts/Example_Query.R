@@ -28,7 +28,7 @@ joined_data <- gp_event_reformatted %>%
 show_query(joined_data)
 
 # To actually execute and collect results into R dataframe:
-result_df <- joined_data %>% collect()
+joined_data %>% collect() %>% head()
 
 # Cleanup
 # dbDisconnect(con)

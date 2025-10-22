@@ -18,8 +18,8 @@ source("create_long_format_assets.R")     # Main long format functions
 # ============================================================================
 
 # Set your database credentials
-Sys.setenv(DB_USER = "db2inst1")
-Sys.setenv(DB_PASSWORD = "mypassword123")
+# Sys.setenv(DB_USER = "db2inst1")
+# Sys.setenv(DB_PASSWORD = "mypassword123")
 
 # Load configuration
 config <- read_db_config("db2_config_multi_source.yaml")
