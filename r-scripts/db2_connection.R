@@ -1,12 +1,8 @@
 library(DBI)
 library(odbc)
 
-# Check available drivers
-print("Available ODBC drivers:")
-print(odbcListDrivers())
-
 # Connect using the container's network hostname
-con <- dbConnect(
+conn <- dbConnect(
   odbc::odbc(),
   Driver = "DB2",
   Database = "DEVDB",
@@ -18,10 +14,3 @@ con <- dbConnect(
 )
 
 print("Connected to DB2!")
-
-# Query data
-result <- dbGetQuery(con, "SELECT * FROM MYSCHEMA.EMPLOYEES")
-print(result)
-
-# Close connection
-dbDisconnect(con)

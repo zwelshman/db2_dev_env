@@ -1,32 +1,16 @@
-library(DBI)
-library(odbc)
-
-# Connect using the container's network hostname
-con <- dbConnect(
-  odbc::odbc(),
-  Driver = "DB2",
-  Database = "DEVDB",
-  Hostname = "db",  # This is the docker-compose service name
-  Port = 50000,
-  UID = "db2inst1",
-  PWD = "mypassword123",
-  Protocol = "TCPIP"
-)
-
-print("Connected to DB2!")
 
 # Create schema sail if not exists
-#dbExecute(con, "CREATE SCHEMA sail")
+dbExecute(conn, "CREATE SCHEMA sail")
 
 # Set current schema to sail
-dbExecute(con, "SET SCHEMA sail")
+dbExecute(conn, "SET SCHEMA sail")
 
 # Create tables - note closing statements and corrected typos (e.g., NOT NULL)
-dbExecute(con, "
+dbExecute(conn, "
 CREATE TABLE sail.GP_EVENT_REFORMATTED (
     ALF_E BIGINT NOT NULL,
     ALF_STS_CD CHAR(10) NOT NULL,
-    ALF_MTCH_PCT DECIMAL(5,2) NOT NULL,
+    ALF_MTCH_PCT DECIMAL(5,2) NOT NULL, 
     PRAC_CD_E INT NOT NULL,
     EVENT_CD_ID INT NOT NULL,
     EVENT_VAL DECIMAL(10,2) NOT NULL,
@@ -34,7 +18,7 @@ CREATE TABLE sail.GP_EVENT_REFORMATTED (
     EVENT_YR SMALLINT NOT NULL
 )")
 
-dbExecute(con, "
+dbExecute(conn, "
 CREATE TABLE sail.GP_EVENT_CODES (
     EVENT_CD_ID INT NOT NULL,
     EVENT_CD SMALLINT NOT NULL,
@@ -51,7 +35,7 @@ CREATE TABLE sail.GP_EVENT_CODES (
     HIERARHCY_LEVEL_3_DESC VARCHAR(200) NOT NULL
 )")
 
-dbExecute(con, "
+dbExecute(conn, "
 CREATE TABLE sail.GP_EVENT_CLEANSED (
     PRAC_CD_PE INTEGER NOT NULL,
     LOCAL_NUM_PE BIGINT NOT NULL,
@@ -69,7 +53,7 @@ CREATE TABLE sail.GP_EVENT_CLEANSED (
     SOURCE_EXTRACT INTEGER NOT NULL
 )")
 
-dbExecute(con, "
+dbExecute(conn, "
 CREATE TABLE sail.PATIENT_ALF_CLEANSED (
     WOB DATE NOT NULL,
     PRAC_CD_PE INTEGER NOT NULL,
@@ -89,7 +73,7 @@ CREATE TABLE sail.PATIENT_ALF_CLEANSED (
     REG_CAT_CD CHAR(10) NOT NULL
 )")
 #dbExecute(con, "DROP TABLE sail.WLGP_CLEANED_GP_REG_BY_PRACINCLUNONSAIL_MEDIAN")
-dbExecute(con, "
+dbExecute(conn, "
 CREATE TABLE sail.WLGP_CLEANED_GP_REG_BY_PRACINCLUNONSAIL_MEDIAN (
     ALF_PE BIGINT NOT NULL,
     AVAILABLE_FROM TIMESTAMP NOT NULL,
@@ -99,7 +83,7 @@ CREATE TABLE sail.WLGP_CLEANED_GP_REG_BY_PRACINCLUNONSAIL_MEDIAN (
     START_DATE DATE NOT NULL
 )")
 #dbExecute(con, "DROP TABLE sail.WLGP_CLEANED_GP_REG_MEDIAN")
-dbExecute(con, "
+dbExecute(conn, "
 CREATE TABLE sail.WLGP_CLEANED_GP_REG_MEDIAN (
     ALF_PE BIGINT NOT NULL,
     AVAILABLE_FROM TIMESTAMP NOT NULL,
@@ -113,4 +97,4 @@ CREATE TABLE sail.WLGP_CLEANED_GP_REG_MEDIAN (
 # dbExecute(con, "GRANT ALL ON TABLE sail.GP_EVENT_CODES TO PUBLIC")
 
 # Close connection
-dbDisconnect(con)
+dbDisconnect(conn)

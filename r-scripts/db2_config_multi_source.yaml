@@ -1,0 +1,543 @@
+# IBM DB2 Database Configuration
+# Configuration for demographic data assets with multiple source tables
+
+database:
+  host: "db"
+  port: 50000
+  database_name: "DEVDB"
+  schema: "SAIL"
+  connection:
+    driver: "DB2"
+    uid: "${DB_USER}"
+    pwd: "${DB_PASSWORD}"
+#    security: "SSL"
+
+# Asset Definitions
+# Each asset can have multiple source tables
+# Users can select preferred tables per project
+
+assets:
+  
+  # =========================================================================
+  # DATE OF BIRTH ASSET
+  # =========================================================================
+  date_of_birth:
+    description: "Patient date of birth information"
+    default_source: "hospital_dob"  # Default table to use if not specified
+    
+    sources:
+      # Source Table A: Hospital System DOB
+      hospital_dob:
+        table_name: "HOSPITAL_DOB_TABLE"
+        description: "Date of birth from hospital registration system"
+        priority: 1  # Higher priority = preferred source
+        data_quality: "high"
+        coverage: "95%"
+        last_updated: "2025-10-01"
+        primary_key: "patient_id"
+        columns:
+          patient_id:
+            db_column: "PATIENT_ID"
+            data_type: "INTEGER"
+          date_of_birth:
+            db_column: "DOB"
+            data_type: "DATE"
+          record_date:
+            db_column: "RECORD_DATE"
+            data_type: "TIMESTAMP"
+      
+      # Source Table B: GP System DOB
+      gp_dob:
+        table_name: "GP_DOB_TABLE"
+        description: "Date of birth from GP registration"
+        priority: 2
+        data_quality: "medium"
+        coverage: "88%"
+        last_updated: "2025-09-15"
+        primary_key: "patient_id"
+        columns:
+          patient_id:
+            db_column: "PAT_ID"
+            data_type: "INTEGER"
+          date_of_birth:
+            db_column: "DATE_OF_BIRTH"
+            data_type: "DATE"
+          record_date:
+            db_column: "CREATED_DATE"
+            data_type: "TIMESTAMP"
+      
+      # Source Table C: National Registry DOB
+      registry_dob:
+        table_name: "NATIONAL_REGISTRY_DOB"
+        description: "Date of birth from national patient registry"
+        priority: 3
+        data_quality: "high"
+        coverage: "99%"
+        last_updated: "2025-10-10"
+        primary_key: "patient_id"
+        columns:
+          patient_id:
+            db_column: "NHS_NUMBER"
+            data_type: "INTEGER"
+          date_of_birth:
+            db_column: "BIRTH_DATE"
+            data_type: "DATE"
+          year_of_birth:
+          record_date:
+            db_column: "LAST_MODIFIED"
+            data_type: "TIMESTAMP"
+
+  # =========================================================================
+  # SEX ASSET
+  # =========================================================================
+  sex:
+    description: "Patient sex/gender information"
+    default_source: "gp_sex"
+    
+    sources:
+      
+      gp_sex:
+        table_name: "PATIENT_ALF_CLEANSED"
+        description: "Sex from hospital demographic records"
+        priority: 1
+        primary_key: "ALF_PE"
+        columns:
+          patient_id:
+            db_column: "ALF_PE"
+            data_type: "BIGINT"
+          sex_code:
+            db_column: "GNDR_CD"
+            data_type: "CHAR(1)"
+            allowed_values: ["M", "F"]
+          record_date:
+            db_column: "CREATE_DT"
+            data_type: "DATE"
+      
+      # gp_sex2:
+      #   table_name: "PATIENT_ALF_CLEANSED"
+      #   description: "Sex from hospital demographic records"
+      #   priority: 2
+      #   data_quality: "high"
+      #   coverage: "95%"
+      #   last_updated: "2025-10-01"
+      #   primary_key: "ALF_PE"
+      #   columns:
+      #     patient_id:
+      #       db_column: "ALF_PE"
+      #       data_type: "BIGINT"
+      #     sex_code:
+      #       db_column: "GNDR_CD"
+      #       data_type: "CHAR(1)"
+      #       allowed_values: ["M", "F"]
+      #     record_date:
+      #       db_column: "CREATE_DT"
+      #       data_type: "DATE"
+      # Source Table B: GP Records
+      # gp_other_sex:
+      #   table_name: "GP_PATIENT_SEX"
+      #   description: "Sex from GP registration"
+      #   priority: 2
+      #   data_quality: "medium"
+      #   coverage: "90%"
+      #   last_updated: "2025-09-20"
+      #   primary_key: "patient_id"
+      #   columns:
+      #     patient_id:
+      #       db_column: "PAT_ID"
+      #       data_type: "INTEGER"
+      #     sex_code:
+      #       db_column: "GENDER_CODE"
+      #       data_type: "VARCHAR(1)"
+      #       allowed_values: ["M", "F", "U", "I"]
+      #     record_date:
+      #       db_column: "UPDATED_DATE"
+      #       data_type: "TIMESTAMP"
+      # 
+      # # Source Table C: National Registry
+      # registry_sex:
+      #   table_name: "REGISTRY_SEX_TABLE"
+      #   description: "Sex from national patient registry"
+      #   priority: 3
+      #   data_quality: "high"
+      #   coverage: "99%"
+      #   last_updated: "2025-10-10"
+      #   primary_key: "patient_id"
+      #   columns:
+      #     patient_id:
+      #       db_column: "NHS_NUMBER"
+      #       data_type: "INTEGER"
+      #     sex_code:
+      #       db_column: "BIRTH_SEX"
+      #       data_type: "VARCHAR(1)"
+      #       allowed_values: ["M", "F"]
+      #     gender_identity:
+      #       db_column: "GENDER_IDENTITY"
+      #       data_type: "VARCHAR(100)"
+      #     record_date:
+      #       db_column: "LAST_MODIFIED"
+      #       data_type: "TIMESTAMP"
+
+  # =========================================================================
+  # ETHNICITY ASSET
+  # =========================================================================
+  ethnicity:
+    description: "Patient ethnicity information"
+    default_source: "self_reported_ethnicity"
+    
+    sources:
+      # Source Table A: Hospital Admission Data
+      admission_ethnicity:
+        table_name: "HOSPITAL_ADMISSIONS_ETHNICITY"
+        description: "Ethnicity recorded during hospital admissions"
+        priority: 2
+        data_quality: "medium"
+        coverage: "70%"
+        last_updated: "2025-09-30"
+        notes: "May contain multiple entries per patient from different admissions"
+        primary_key: "admission_id"
+        patient_key: "patient_id"
+        columns:
+          admission_id:
+            db_column: "ADMISSION_ID"
+            data_type: "INTEGER"
+          patient_id:
+            db_column: "PATIENT_ID"
+            data_type: "INTEGER"
+          ethnicity_code:
+            db_column: "ETHNIC_CODE"
+            data_type: "VARCHAR(2)"
+          ethnicity_category:
+            db_column: "ETHNIC_GROUP"
+            data_type: "VARCHAR(100)"
+          admission_date:
+            db_column: "ADMISSION_DATE"
+            data_type: "DATE"
+          record_date:
+            db_column: "RECORDED_DATE"
+            data_type: "TIMESTAMP"
+      
+      # Source Table B: Outpatient Records
+      outpatient_ethnicity:
+        table_name: "OUTPATIENT_ETHNICITY"
+        description: "Ethnicity from outpatient appointments"
+        priority: 3
+        data_quality: "medium"
+        coverage: "65%"
+        last_updated: "2025-10-05"
+        primary_key: "patient_id"
+        columns:
+          patient_id:
+            db_column: "PAT_ID"
+            data_type: "INTEGER"
+          ethnicity_code:
+            db_column: "ETHNICITY_CD"
+            data_type: "VARCHAR(10)"
+          ethnicity_description:
+            db_column: "ETHNICITY_DESC"
+            data_type: "VARCHAR(255)"
+          record_date:
+            db_column: "LAST_UPDATED"
+            data_type: "TIMESTAMP"
+      
+      # Source Table C: Self-Reported Ethnicity Survey
+      self_reported_ethnicity:
+        table_name: "PATIENT_ETHNICITY_SURVEY"
+        description: "Self-reported ethnicity from patient surveys"
+        priority: 1  # Highest priority - most accurate
+        data_quality: "high"
+        coverage: "55%"
+        last_updated: "2025-10-12"
+        notes: "Preferred source - directly from patients"
+        primary_key: "patient_id"
+        columns:
+          patient_id:
+            db_column: "PATIENT_ID"
+            data_type: "INTEGER"
+          ethnicity_code:
+            db_column: "ETHNICITY_CODE"
+            data_type: "VARCHAR(10)"
+          ethnicity_category:
+            db_column: "ETHNICITY_CATEGORY"
+            data_type: "VARCHAR(100)"
+          ethnicity_subcategory:
+            db_column: "ETHNICITY_SUBCATEGORY"
+            data_type: "VARCHAR(100)"
+          ethnicity_description:
+            db_column: "ETHNICITY_FULL_DESC"
+            data_type: "VARCHAR(255)"
+          self_reported:
+            db_column: "SELF_REPORTED_FLAG"
+            data_type: "BOOLEAN"
+          survey_date:
+            db_column: "SURVEY_DATE"
+            data_type: "DATE"
+          record_date:
+            db_column: "RECORD_DATE"
+            data_type: "TIMESTAMP"
+      
+      # Source Table D: GP Ethnicity Records
+      gp_ethnicity:
+        table_name: "GP_ETHNICITY_DATA"
+        description: "Ethnicity from GP records"
+        priority: 4
+        data_quality: "low"
+        coverage: "80%"
+        last_updated: "2025-08-20"
+        primary_key: "patient_id"
+        columns:
+          patient_id:
+            db_column: "PATIENT_NUMBER"
+            data_type: "INTEGER"
+          ethnicity_code:
+            db_column: "ETHNIC_ORIGIN"
+            data_type: "VARCHAR(5)"
+          record_date:
+            db_column: "ENTRY_DATE"
+            data_type: "TIMESTAMP"
+
+  # =========================================================================
+  # LSOA ASSET
+  # =========================================================================
+  lsoa:
+    description: "Lower Layer Super Output Area geographic information"
+    default_source: "current_address_lsoa"
+    
+    sources:
+      # Source Table A: Current Address LSOA
+      current_address_lsoa:
+        table_name: "PATIENT_CURRENT_ADDRESS_LSOA"
+        description: "LSOA from current patient address"
+        priority: 1
+        data_quality: "high"
+        coverage: "92%"
+        last_updated: "2025-10-15"
+        primary_key: "patient_id"
+        columns:
+          patient_id:
+            db_column: "PATIENT_ID"
+            data_type: "INTEGER"
+          lsoa_code:
+            db_column: "LSOA_CODE_2021"
+            data_type: "VARCHAR(10)"
+          lsoa_name:
+            db_column: "LSOA_NAME"
+            data_type: "VARCHAR(255)"
+          msoa_code:
+            db_column: "MSOA_CODE_2021"
+            data_type: "VARCHAR(10)"
+          local_authority:
+            db_column: "LOCAL_AUTHORITY_NAME"
+            data_type: "VARCHAR(100)"
+          region:
+            db_column: "REGION_NAME"
+            data_type: "VARCHAR(100)"
+          imd_decile:
+            db_column: "IMD_DECILE_2019"
+            data_type: "INTEGER"
+          imd_quintile:
+            db_column: "IMD_QUINTILE_2019"
+            data_type: "INTEGER"
+          postcode:
+            db_column: "POSTCODE"
+            data_type: "VARCHAR(10)"
+          address_from_date:
+            db_column: "ADDRESS_START_DATE"
+            data_type: "DATE"
+          record_date:
+            db_column: "RECORD_DATE"
+            data_type: "TIMESTAMP"
+      
+      # Source Table B: GP Registration LSOA
+      gp_registration_lsoa:
+        table_name: "GP_REGISTRATION_LSOA"
+        description: "LSOA from GP registration address"
+        priority: 2
+        data_quality: "medium"
+        coverage: "88%"
+        last_updated: "2025-09-25"
+        primary_key: "patient_id"
+        columns:
+          patient_id:
+            db_column: "PAT_ID"
+            data_type: "INTEGER"
+          lsoa_code:
+            db_column: "LSOA"
+            data_type: "VARCHAR(10)"
+          imd_decile:
+            db_column: "DEPRIVATION_DECILE"
+            data_type: "INTEGER"
+          postcode_sector:
+            db_column: "POSTCODE_SECTOR"
+            data_type: "VARCHAR(10)"
+          record_date:
+            db_column: "REGISTRATION_DATE"
+            data_type: "TIMESTAMP"
+      
+      # Source Table C: Hospital Episode LSOA
+      hospital_episode_lsoa:
+        table_name: "HOSPITAL_EPISODE_LSOA"
+        description: "LSOA from hospital episode statistics"
+        priority: 3
+        data_quality: "medium"
+        coverage: "85%"
+        last_updated: "2025-10-01"
+        notes: "LSOA at time of admission - may be historical"
+        primary_key: "episode_id"
+        patient_key: "patient_id"
+        columns:
+          episode_id:
+            db_column: "EPISODE_ID"
+            data_type: "INTEGER"
+          patient_id:
+            db_column: "PATIENT_ID"
+            data_type: "INTEGER"
+          lsoa_code:
+            db_column: "LSOA_OF_RESIDENCE"
+            data_type: "VARCHAR(10)"
+          imd_decile:
+            db_column: "IMD_DECILE"
+            data_type: "INTEGER"
+          episode_date:
+            db_column: "EPISODE_START_DATE"
+            data_type: "DATE"
+          record_date:
+            db_column: "RECORD_DATE"
+            data_type: "TIMESTAMP"
+
+# ============================================================================
+# Project Configurations
+# Users can define preferred source tables for specific projects
+# ============================================================================
+
+projects:
+  
+  # Example Project 1: Clinical Research Study
+  clinical_research_study:
+    description: "Clinical research project requiring high-quality self-reported data"
+    preferred_sources:
+      date_of_birth: "hospital_dob"  # Use hospital DOB
+      sex: "hospital_sex"             # Use hospital sex
+      ethnicity: "self_reported_ethnicity"  # Prefer self-reported
+      lsoa: "current_address_lsoa"    # Use current address
+    fallback_strategy: "priority"  # Use priority order if preferred not available
+  
+  # Example Project 2: Administrative Analysis
+  administrative_analysis:
+    description: "Administrative analysis requiring maximum coverage"
+    preferred_sources:
+      date_of_birth: "registry_dob"  # Use registry for maximum coverage
+      sex: "registry_sex"
+      ethnicity: "admission_ethnicity"  # Use admission data for coverage
+      lsoa: "gp_registration_lsoa"
+    fallback_strategy: "coverage"  # Prioritize coverage over quality
+  
+  # Example Project 3: Health Inequalities Study
+  health_inequalities:
+    description: "Study focusing on deprivation and ethnicity"
+    preferred_sources:
+      date_of_birth: "hospital_dob"
+      sex: "hospital_sex"
+      ethnicity: "self_reported_ethnicity"  # Critical to use self-reported
+      lsoa: "current_address_lsoa"  # Need current deprivation indices
+    required_fields:
+      ethnicity: ["ethnicity_category", "ethnicity_subcategory"]
+      lsoa: ["imd_decile", "imd_quintile"]
+    fallback_strategy: "none"  # Don't fallback - require specified sources
+  
+  # Example Project 4: Multi-Source Ethnicity
+  ethnicity_validation:
+    description: "Project comparing ethnicity across multiple sources"
+    preferred_sources:
+      date_of_birth: "hospital_dob"
+      sex: "hospital_sex"
+      ethnicity: 
+        - "self_reported_ethnicity"  # Get all three sources
+        - "admission_ethnicity"
+        - "gp_ethnicity"
+      lsoa: "current_address_lsoa"
+    combine_strategy: "all"  # Retrieve from all specified sources
+
+# ============================================================================
+# Data Combination Rules
+# Define how to combine data from multiple tables
+# ============================================================================
+
+combination_rules:
+  
+  # Strategy for combining ethnicity from multiple sources
+  ethnicity:
+    method: "priority_with_validation"
+    steps:
+      - "Use self_reported_ethnicity if available and not null"
+      - "Fall back to admission_ethnicity (most recent admission)"
+      - "Fall back to outpatient_ethnicity"
+      - "Fall back to gp_ethnicity as last resort"
+    conflict_resolution: "prefer_self_reported"
+    validation:
+      - "Flag if ethnicity differs across sources"
+      - "Record source table used for each patient"
+  
+  # Strategy for combining LSOA data
+  lsoa:
+    method: "most_recent"
+    steps:
+      - "Use current_address_lsoa if record_date within last 6 months"
+      - "Fall back to gp_registration_lsoa"
+      - "Fall back to hospital_episode_lsoa (most recent)"
+    time_window: "6 months"
+    validation:
+      - "Check for address changes in last 12 months"
+      - "Flag if LSOA has changed"
+  
+  # Strategy for date of birth
+  date_of_birth:
+    method: "consensus"
+    steps:
+      - "Compare DOB across all available sources"
+      - "If all agree, use agreed value"
+      - "If mismatch, use highest priority source with 'EXACT' accuracy"
+      - "Flag patients with DOB discrepancies"
+    validation:
+      - "Flag if DOB differs across sources"
+      - "Flag if year differs but month/day match (transposition error)"
+
+# ============================================================================
+# Data Quality Metadata
+# ============================================================================
+
+data_quality:
+  completeness:
+    thresholds:
+      high: 90
+      medium: 70
+      low: 50
+  
+  timeliness:
+    acceptable_age_months: 6
+    warning_age_months: 12
+  
+  validation_rules:
+    date_of_birth:
+      - "date_of_birth <= CURRENT_DATE"
+      - "year_of_birth >= 1900"
+      - "age_at_record < 120"
+    sex:
+      - "sex_code IN ('M', 'F', 'U', 'I')"
+    ethnicity:
+      - "ethnicity_code IS NOT NULL"
+    lsoa:
+      - "lsoa_code MATCHES '[EWNSL][0-9]{8}'"
+      - "imd_decile BETWEEN 1 AND 10"
+      - "imd_quintile BETWEEN 1 AND 5"
+
+# ============================================================================
+# Metadata
+# ============================================================================
+
+metadata:
+  config_version: "2.0"
+  created_date: "2025-10-22"
+  last_updated: "2025-10-22"
+  maintained_by: "Data Team"
+  contact: "data-team@example.com"
+  documentation_url: "https://internal-docs.example.com/data-assets"
