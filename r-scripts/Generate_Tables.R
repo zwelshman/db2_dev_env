@@ -16,7 +16,7 @@ con <- dbConnect(
 print("Connected to DB2!")
 
 # Create schema sail if not exists
-# dbExecute(con, "CREATE SCHEMA sail")
+#dbExecute(con, "CREATE SCHEMA sail")
 
 # Set current schema to sail
 dbExecute(con, "SET SCHEMA sail")

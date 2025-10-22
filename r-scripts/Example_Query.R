@@ -15,9 +15,10 @@ con <- dbConnect(
   Protocol = "TCPIP"
 )
 
+dbExecute(con, "SET SCHEMA sail")
 # Reference remote tables with dbplyr
-gp_event_reformatted <- tbl(con, in_schema("sail", "GP_EVENT_REFORMATTED"))
-gp_event_codes <- tbl(con, in_schema("sail", "GP_EVENT_CODES"))
+gp_event_reformatted <- tbl(con, "GP_EVENT_REFORMATTED")
+gp_event_codes <- tbl(con, "GP_EVENT_CODES")
 
 # Join the tables on EVENT_CD_ID (example of linking)
 joined_data <- gp_event_reformatted %>%
@@ -27,7 +28,7 @@ joined_data <- gp_event_reformatted %>%
 show_query(joined_data)
 
 # To actually execute and collect results into R dataframe:
-# result_df <- joined_data %>% collect()
+result_df <- joined_data %>% collect()
 
 # Cleanup
 # dbDisconnect(con)
