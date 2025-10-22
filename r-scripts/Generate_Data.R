@@ -41,7 +41,7 @@ batch_insert <- function(con, table_name, df, batch_size = BATCH_SIZE) {
       mutate(across(where(is.Date), ~ dbQuoteString(con, as.character(.)))) %>%
       pmap(function(...) paste0("(", paste(c(...), collapse = ","), ")")) %>%
       paste(collapse = ",\n")
-    sql <- paste0("INSERT INTO ", table_name, " (", paste(cols, collapse = ","), ") VALUES\n", values, ";")
+    sql <- paste0("INSERT INTO sail.", table_name, " (", paste(cols, collapse = ","), ") VALUES\n", values, ";")
     dbExecute(con, sql)
   }
 }
@@ -125,7 +125,7 @@ batch_insert(con, "GP_EVENT_CLEANSED", gp_event_cleansed)
 # Using same data for both tables (as per original script)
 wlgp_reg <- tibble(
   ALF_PE = patients$ALF_PE,
-  AVAILABLE_FROM = Sys.time() - runif(N_PATIENTS, min = 0, max = 1e7),
+  AVAILABLE_FROM = format(Sys.time() - runif(N_PATIENTS, 0, 1e7), "%Y-%m-%d %H:%M:%S"),
   END_DATE = Sys.Date() + sample(30:365, N_PATIENTS, replace = TRUE),
   GP_DATA_FLAG = sample(0:1, N_PATIENTS, replace = TRUE, prob = c(0.1, 0.9)),
   PRAC_CD_PE = patients$PRAC_CD_PE,
